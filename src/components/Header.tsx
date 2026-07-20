@@ -8,8 +8,8 @@ interface HeaderProps {
 
 export default function Header({ appState, onReset }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-dark-900 border-b border-dark-700">
-      <div className="flex items-center gap-3">
+    <header className="flex items-center justify-between pr-6 py-4 bg-dark-900 border-b border-dark-700" style={{ paddingLeft: '88px', WebkitAppRegion: 'drag' } as React.CSSProperties}>
+      <div className="flex items-center gap-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
           <VscCloud className="text-white text-xl" />
         </div>
@@ -23,7 +23,7 @@ export default function Header({ appState, onReset }: HeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <div className="flex items-center gap-2">
           <span
             className={`w-2 h-2 rounded-full ${
