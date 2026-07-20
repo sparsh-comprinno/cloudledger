@@ -27,16 +27,23 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Build Electron app (macOS)
+      - name: Build & publish Electron app
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --mac --publish always
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: List built artifacts
+        run: ls -la release/
+
+      - name: Create GitHub Release with artifacts
+        uses: softprops/action-gh-release@v2
         with:
-          name: macos-build
-          path: |
+          files: |
             release/*.dmg
             release/*.zip
             release/*.yml
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
