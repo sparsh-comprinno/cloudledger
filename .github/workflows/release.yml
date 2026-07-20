@@ -27,10 +27,8 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Build Electron app (no publish)
-        run: npx electron-builder --mac
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Electron app (local only, no publish)
+        run: npx electron-builder --mac --publish never
 
       - name: List built artifacts
         run: ls -la release/
@@ -41,7 +39,6 @@ jobs:
           files: |
             release/*.dmg
             release/*.zip
-            release/latest-mac.yml
           generate_release_notes: true
           draft: false
           prerelease: false
