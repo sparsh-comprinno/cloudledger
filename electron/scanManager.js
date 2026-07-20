@@ -1,4 +1,5 @@
 import { fromIni, fromEnv } from '@aws-sdk/credential-providers';
+import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 import { scanCompute } from './scanners/compute.js';
 import { scanNetworking } from './scanners/networking.js';
 import { scanStorage } from './scanners/storage.js';
@@ -20,6 +21,31 @@ export async function startScan(credentials, progressCallback) {
   const startTime = Date.now();
   const config = buildAwsConfig(credentials);
   const region = credentials.region;
+
+  // Validate credentials first with a quick STS call
+  progressCallback({
+    current_service: 'Validating credentials...',
+    services_scanned: 0,
+    total_services: 85,
+    resources_found: 0,
+    percentage: 0,
+    log_message: 'Validating AWS credentials...',
+  });
+
+  try {
+    const stsClient = new STSClient(config);
+    const identity = await stsClient.send(new GetCallerIdentityCommand({}));
+    progressCallback({
+      current_service: 'Credentials validated',
+      services_scanned: 0,
+      total_services: 85,
+      resources_found: 0,
+      percentage: 1,
+      log_message: `✓ Authenticated as ${identity.Arn}`,
+    });
+  } catch (err) {
+    throw new Error(`Authentication failed: ${err.message}. Check your credentials and try again.`);
+  }
 
   let allResources = [];
   let serviceIndex = 0;
@@ -219,21 +245,28 @@ export async function startScan(credentials, progressCallback) {
 
 function buildAwsConfig(credentials) {
   const region = credentials.region;
+  const requestTimeout = 30000; // 30 second timeout per API call
 
   if (credentials.use_env_vars) {
-    return { region, credentials: fromEnv() };
+    return { region, credentials: fromEnv(), requestHandler: { requestTimeout } };
   }
 
   if (credentials.use_profile) {
-    return { region, credentials: fromIni({ profile: credentials.profile }) };
+    return {
+      region,
+      credentials: fromIni({ profile: credentials.profile || 'default' }),
+      requestHandler: { requestTimeout },
+    };
   }
 
-  return {
-    region,
-    credentials: {
-      accessKeyId: credentials.access_key_id,
-      secretAccessKey: credentials.secret_access_key,
-      ...(credentials.session_token ? { sessionToken: credentials.session_token } : {}),
-    },
+  // Static credentials (manual entry)
+  const creds = {
+    accessKeyId: credentials.access_key_id,
+    secretAccessKey: credentials.secret_access_key,
   };
+  if (credentials.session_token) {
+    creds.sessionToken = credentials.session_token;
+  }
+
+  return { region, credentials: creds, requestHandler: { requestTimeout } };
 }
