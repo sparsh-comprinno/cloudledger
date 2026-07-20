@@ -27,23 +27,21 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Build & publish Electron app
+      - name: Build Electron app (no publish)
+        run: npx electron-builder --mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --mac --publish always
 
       - name: List built artifacts
         run: ls -la release/
 
-      - name: Create GitHub Release with artifacts
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             release/*.dmg
             release/*.zip
-            release/*.yml
+            release/latest-mac.yml
           generate_release_notes: true
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
