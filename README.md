@@ -11,6 +11,8 @@ A macOS desktop app that connects to your AWS account and generates a complete i
 5. You get a searchable, sortable table of everything in your account — with cost data from Cost Explorer attached
 6. Export to Excel, CSV, JSON, or PDF
 
+**⚠️ This application is strictly read-only. It will NEVER create, modify, delete, or alter any AWS resource.** All API calls are `Describe*`, `List*`, or `Get*` operations only. Your infrastructure stays exactly as it is.
+
 ## Installation
 
 Download the latest `.dmg` from [Releases](../../releases), mount it, drag to Applications.
@@ -77,12 +79,20 @@ The scanner hits these services directly:
 The scanning account needs read-only access. Recommended IAM policy:
 
 ```
+arn:aws:iam::aws:policy/ViewOnlyAccess
+```
+
+Or for broader coverage:
+
+```
 arn:aws:iam::aws:policy/ReadOnlyAccess
 ```
 
 Plus these for cost data:
 - `ce:GetCostAndUsage`
 - `ce:GetCostForecast`
+
+**Do NOT grant any write permissions.** The app only calls `Describe*`, `List*`, and `Get*` APIs. It never modifies your infrastructure.
 
 ## How auto-update works
 
