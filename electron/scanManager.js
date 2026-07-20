@@ -64,7 +64,11 @@ export async function startScan(credentials, progressCallback) {
     });
 
     try {
-      const resources = await scanFn(config, region);
+      // 15-second timeout per service to prevent hanging
+      const resources = await Promise.race([
+        scanFn(config, region),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out (15s)')), 15000)),
+      ]);
       allResources.push(...resources);
       progressCallback({
         current_service: name,

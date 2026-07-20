@@ -84,12 +84,28 @@ app.on('activate', () => {
 
 // ===== IPC HANDLERS =====
 ipcMain.handle('start-scan', async (event, credentials) => {
+  console.log('[CloudLedger] Starting scan with config:', {
+    region: credentials.region,
+    use_profile: credentials.use_profile,
+    use_env_vars: credentials.use_env_vars,
+    profile: credentials.profile,
+    has_access_key: !!credentials.access_key_id,
+  });
+
   const progressCallback = (progress) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('scan-progress', progress);
     }
   };
-  return await startScan(credentials, progressCallback);
+
+  try {
+    const result = await startScan(credentials, progressCallback);
+    console.log('[CloudLedger] Scan complete:', result.total_resources, 'resources found');
+    return result;
+  } catch (err) {
+    console.error('[CloudLedger] Scan error:', err);
+    throw err.message || String(err);
+  }
 });
 
 ipcMain.handle('export-inventory', async (event, { format, resources, costData }) => {
